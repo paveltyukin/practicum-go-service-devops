@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"reflect"
 	"time"
+
+	"github.com/paveltyukin/practicum-go-service-devops/internal"
 )
 
 type reportParams struct {
@@ -64,12 +66,12 @@ func send(m *mxMetrics, client *http.Client) {
 
 	for i := 0; i < v.NumField(); i++ {
 		switch v.Field(i).Interface().(type) {
-		case gauge:
+		case internal.Gauge:
 			params.mType = "gauge"
-		case counter:
+		case internal.Counter:
 			params.mType = "counter"
 		default:
-			panic("metrics error types")
+			panic("Metrics error types")
 		}
 
 		params.mValue = fmt.Sprintf("%v", v.Field(i).Interface())
@@ -102,7 +104,7 @@ func sendMetricsToServer(params reportParams, client *http.Client) error {
 		return err
 	}
 
-	fmt.Println(request.URL, request.Method)
+	fmt.Println(request.URL, request.Method, params)
 
 	return nil
 }

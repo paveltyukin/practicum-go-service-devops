@@ -83,6 +83,8 @@ func send(m *mxMetrics, client *http.Client) {
 }
 
 func sendMetricsToServer(params reportParams, client *http.Client) error {
+	var res *http.Response
+
 	url := fmt.Sprintf("http://127.0.0.1:8080/update/%v/%v/%v", params.mType, params.mName, params.mValue)
 	request, err := http.NewRequest(http.MethodPost, url, nil)
 	request.Header.Set("Content-Type", "text/plain")
@@ -90,7 +92,12 @@ func sendMetricsToServer(params reportParams, client *http.Client) error {
 		return err
 	}
 
-	_, err = client.Do(request)
+	res, err = client.Do(request)
+	if err != nil {
+		return err
+	}
+
+	err = res.Body.Close()
 	if err != nil {
 		return err
 	}

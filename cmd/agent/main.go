@@ -9,7 +9,7 @@ import (
 
 func main() {
 	m := newMxMetrics()
-	client := newHttpClient()
+	client := newHTTPClient()
 
 	var wg sync.WaitGroup
 

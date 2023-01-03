@@ -14,7 +14,7 @@ type reportParams struct {
 	mValue string
 }
 
-func newHttpClient() *http.Client {
+func newHTTPClient() *http.Client {
 	t := http.DefaultTransport.(*http.Transport).Clone()
 	t.MaxIdleConns = 100
 	t.MaxConnsPerHost = 100

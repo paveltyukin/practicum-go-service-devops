@@ -5,11 +5,13 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"github.com/paveltyukin/practicum-go-service-devops/internal/agent"
 )
 
 func main() {
 	m := newMxMetrics()
-	client := newHTTPClient()
+	client := agent.NewHTTPClient()
 
 	var wg sync.WaitGroup
 

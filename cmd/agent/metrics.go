@@ -42,30 +42,7 @@ type metrics struct {
 	RandomValue   gauge
 }
 
-type mxMetrics struct {
-	mx      sync.Mutex
-	metrics metrics
-}
-
-func newMxMetrics() *mxMetrics {
-	return &mxMetrics{
-		metrics: getCurMetrics(metrics{}),
-	}
-}
-
-func (m *mxMetrics) Get() metrics {
-	m.mx.Lock()
-	defer m.mx.Unlock()
-	return m.metrics
-}
-
-func (m *mxMetrics) Update() {
-	m.mx.Lock()
-	defer m.mx.Unlock()
-	m.metrics = getCurMetrics(m.metrics)
-}
-
-func getCurMetrics(metrics metrics) metrics {
+func getCurrentMetrics(metrics metrics) metrics {
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
 
@@ -103,4 +80,27 @@ func getCurMetrics(metrics metrics) metrics {
 	metrics.PollCount = metrics.PollCount + 1
 
 	return metrics
+}
+
+type mxMetrics struct {
+	mx      sync.Mutex
+	metrics metrics
+}
+
+func newMxMetrics() *mxMetrics {
+	return &mxMetrics{
+		metrics: getCurrentMetrics(metrics{}),
+	}
+}
+
+func (m *mxMetrics) Get() metrics {
+	m.mx.Lock()
+	defer m.mx.Unlock()
+	return m.metrics
+}
+
+func (m *mxMetrics) Update() {
+	m.mx.Lock()
+	defer m.mx.Unlock()
+	m.metrics = getCurrentMetrics(m.metrics)
 }

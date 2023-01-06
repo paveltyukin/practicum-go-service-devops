@@ -6,25 +6,9 @@ import (
 	"net/http"
 	"reflect"
 	"time"
+
+	"github.com/paveltyukin/practicum-go-service-devops/internal"
 )
-
-type reportParams struct {
-	mType  string
-	mName  string
-	mValue string
-}
-
-func newHTTPClient() *http.Client {
-	t := http.DefaultTransport.(*http.Transport).Clone()
-	t.MaxIdleConns = 100
-	t.MaxConnsPerHost = 100
-	t.MaxIdleConnsPerHost = 100
-
-	return &http.Client{
-		Timeout:   10 * time.Second,
-		Transport: t,
-	}
-}
 
 func updateMetrics(ctx context.Context, mxMetrics *mxMetrics) {
 	pollInterval := time.NewTicker(2 * time.Second)
@@ -56,7 +40,7 @@ func sendMetrics(ctx context.Context, m *mxMetrics, client *http.Client) {
 }
 
 func send(m *mxMetrics, client *http.Client) {
-	params := reportParams{}
+	params := internal.UpdateParams{}
 	curMetrics := m.Get()
 
 	v := reflect.ValueOf(curMetrics)
@@ -65,15 +49,15 @@ func send(m *mxMetrics, client *http.Client) {
 	for i := 0; i < v.NumField(); i++ {
 		switch v.Field(i).Interface().(type) {
 		case gauge:
-			params.mType = "gauge"
+			params.MType = "gauge"
 		case counter:
-			params.mType = "counter"
+			params.MType = "counter"
 		default:
 			panic("metrics error types")
 		}
 
-		params.mValue = fmt.Sprintf("%v", v.Field(i).Interface())
-		params.mName = fmt.Sprintf("%v", metricTypes.Field(i).Name)
+		params.MValue = fmt.Sprintf("%v", v.Field(i).Interface())
+		params.MName = fmt.Sprintf("%v", metricTypes.Field(i).Name)
 
 		err := sendMetricsToServer(params, client)
 		if err != nil {
@@ -82,10 +66,10 @@ func send(m *mxMetrics, client *http.Client) {
 	}
 }
 
-func sendMetricsToServer(params reportParams, client *http.Client) error {
+func sendMetricsToServer(params internal.UpdateParams, client *http.Client) error {
 	var res *http.Response
 
-	url := fmt.Sprintf("http://127.0.0.1:8080/update/%v/%v/%v", params.mType, params.mName, params.mValue)
+	url := fmt.Sprintf("http://127.0.0.1:8080/update/%v/%v/%v", params.MType, params.MName, params.MValue)
 	request, err := http.NewRequest(http.MethodPost, url, nil)
 	request.Header.Set("Content-Type", "text/plain")
 	if err != nil {
@@ -102,7 +86,7 @@ func sendMetricsToServer(params reportParams, client *http.Client) error {
 		return err
 	}
 
-	fmt.Println(request.URL, request.Method)
+	fmt.Println(request.URL, request.Method, params)
 
 	return nil
 }
